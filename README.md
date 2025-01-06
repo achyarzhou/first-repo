@@ -2,6 +2,7 @@
 # - server nginx
 # - flask framework
 # - python3 backend
-# - .dot webp visual
+# - .dot webp diagram visual
 # - c++ dataset
+# - sql database
 
