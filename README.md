@@ -1,10 +1,17 @@
-import pyfiglet
 
-font=pyfiglet.Figlet()
 
-ascii_art=font.renderText("Project WSL")
+ mmmmm                   "                   m          m     m  mmmm  m
 
-print (ascii_art)
+ #   "#  m mm   mmm    mmm    mmm    mmm   mm#mm        #  #  # #"   " #
+
+ #mmm#"  #"  " #" "#     #   #"  #  #"  "    #          " #"# # "#mmm  #
+
+ #       #     #   #     #   #""""  #        #           ## ##"     "# #
+
+ #       #     "#m#"     #   "#mm"  "#mm"    "mm         #   #  "mmm#" #mmmmm
+                         #
+
+                       ""
 
 markdown
 
