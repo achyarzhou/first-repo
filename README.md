@@ -1,8 +1,4 @@
-# mmmmm                   "                   m          m     m  mmmm  m
-#   "#  m mm   mmm    mmm    mmm    mmm   mm#mm        #  #  # #"   " #
-# mmm#"  #"  " #" "#     #   #"  #  #"  "    #          " #"# # "#mmm  #
-#       #     #   #     #   #""""  #        #           ## ##"     "# #
-#       #     "#m#"     #   "#mm"  "#mm"    "mm         #   #  "mmm#" #mmmmm#                        #
+# PROJECT WSL                     #
 # - server nginx
 # - flask framework
 # - python3 backend
