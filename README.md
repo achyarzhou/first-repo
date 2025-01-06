@@ -1,2 +1,7 @@
-# Project ini menggunakan flask sebagai framework, nginx sebagai server dan python untuk backend
+# Project pembelajaran wsl 
+# - server nginx
+# - flask framework
+# - python3 backend
+# - .dot webp visual
+# - c++ dataset
 
