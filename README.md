@@ -1,5 +1,3 @@
-
-
  mmmmm                   "                   m          m     m  mmmm  m
 
  #   "#  m mm   mmm    mmm    mmm    mmm   mm#mm        #  #  # #"   " #
@@ -12,8 +10,6 @@
                          #
 
                        ""
-
-markdown
 
 # - server nginx
 # - flask framework
