@@ -300,5 +300,3 @@ digraph IKU {
         IKU1 -> IKU2 -> IKU3 -> IKU4 -> IKU5 -> IKU6 -> IKU7 -> IKU8 [shape=ellipse, style=dotted];
     }
 }
-
-
