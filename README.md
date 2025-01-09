@@ -1,5 +1,5 @@
-# figlet "archieve WSL"                
- - server nginx
+# WSL Archive                
+ - nginx server
  - flask framework
  - python3 backend
  - .dot webp visual diagram
