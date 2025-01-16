@@ -1,11 +1,11 @@
-# WSL Archives [@achyarzhou](http://github.com/achyarzhou)
-[![Build Status](https://github.com/achyarzhou/first-repo.git?event=push)](https://github.com/achyarzhou/first-repo.git?workflow=CI)
+# WSL Archives 👋 [@achyarzhou](http://github.com/achyarzhou)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 > [!WARNING]
 >
 > mencoba beberapa fungsi python3, c++ menggunakan nginx server di WSL
 
-## How to use?
+## ✨ Demo
 
 ### add file
 
