@@ -2,8 +2,10 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 > [!WARNING]
->
-> This program is created for personal learning purposes, prioritizing process and continuous improvement
+> 
+> **⚠️ Warning:**
+> *This program is created for personal learning purposes, prioritizing process and continuous improvement.*
+
 
 ## ✨ Demo
 
