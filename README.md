@@ -3,7 +3,7 @@
 
 > [!WARNING]
 >
-> mencoba beberapa fungsi python3, c++ menggunakan nginx server di WSL
+> This program is created for personal learning purposes, prioritizing process and continuous improvement
 
 ## ✨ Demo
 
