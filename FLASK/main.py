@@ -9,6 +9,6 @@ def home():
 
 # Used to run locally
 if __name__ == '__main__':
-    app.run(debug=True)
+   app.run(host='0.0.0.0', port=1369, debug=True)
 
 	
