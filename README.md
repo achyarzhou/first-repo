@@ -20,10 +20,10 @@ $ git add file
 ### commit
 
 ```bash
-$ git commit -m "penjelasan update"
+$ git commit -m "? update"
 ```
 
-### push ke github
+### push code to github
 
 ```bash
 $ git push origin main
