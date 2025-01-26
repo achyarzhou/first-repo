@@ -6,7 +6,7 @@
 
 > [!WARNING]
 >
-> *This program is created for personal learning purposes, prioritizing process and continuous improvement.*
+> *This program is created for personal learning purposes, with a focus on process and continuous improvement.*
 
 
 ## ✨ Demo
