@@ -1,6 +1,6 @@
 # WSL Archives 👋 [@achyar](http://github.com/achyarzhou)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Platform](https://img.shields.io/badge/Platform-linux%20%7C%20windows-lightgrey.svg)](https://img.shields.io/badge/Platform-linux%20%7C%20windows-lightgrey.svg)
+[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20WSL-yellow?style=for-the-badge&logo=linux&logoColor=white)](https://img.shields.io/badge/Platform-Linux%20%7C%20WSL-yellow?style=for-the-badge&logo=linux&logoColor=white)
 [![Awesome](https://cdn.jsdelivr.net/gh/sindresorhus/awesome@d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/sindresorhus/awesome#readme)
 
 > [!WARNING]
