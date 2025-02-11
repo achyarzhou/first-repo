@@ -28,3 +28,10 @@ $ git commit -m "? update"
 ```bash
 $ git push origin main
 ```
+
+### cling run
+```bash
+$ cling -resource-dir /usr/lib/clang/16
+```
+
+
