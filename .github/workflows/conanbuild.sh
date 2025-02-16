@@ -1,1 +1,0 @@
-. "/home/achyarx/github/first-project/.github/workflows/conanbuildenv-release-x86_64.sh"
