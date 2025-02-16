@@ -1,0 +1,3 @@
+/home/achyarx/github/first-project/C++/MyCMake/build/CMakeFiles/my_program.dir
+/home/achyarx/github/first-project/C++/MyCMake/build/CMakeFiles/edit_cache.dir
+/home/achyarx/github/first-project/C++/MyCMake/build/CMakeFiles/rebuild_cache.dir
