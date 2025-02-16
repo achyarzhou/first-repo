@@ -29,9 +29,11 @@ $ git commit -m "? update"
 $ git push origin main
 ```
 
-### cling run
+### how to access
 ```bash
-$ cling -resource-dir /usr/lib/clang/16
-```
-
+$ alias cax='cd ~/github/achyar'
+$ openrepo() {
+    wslview "https://github.com/achyarzhou/$1"
+}
+$openrepo first-repo.git  
 
