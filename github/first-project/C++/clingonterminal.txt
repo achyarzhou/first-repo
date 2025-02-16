@@ -1,7 +1,0 @@
-/bin/cling -std=c++11 -x c++ - <<EOF
-#incude <iostream>
-int main() {
-std::cout << "Hello, World!" << std::endl;
-return 0;
-}
-EOFl

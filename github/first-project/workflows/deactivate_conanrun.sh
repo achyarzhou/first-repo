@@ -1,1 +1,0 @@
-. "/home/achyarx/github/first-project/.github/workflows/deactivate_conanrunenv-release-x86_64.sh"
