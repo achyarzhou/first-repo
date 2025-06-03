@@ -13,6 +13,10 @@
 
 ### add file
 
+```
+$ vim add .file 
+```
+
 ```bash
 $ git add file
 ```
@@ -27,6 +31,10 @@ $ git commit -m "? update"
 
 ```bash
 $ git push origin main
+```
+
+```bash
+$ git rm to remove
 ```
 
 ### how to access
