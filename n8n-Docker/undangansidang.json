@@ -1,0 +1,131 @@
+{
+  "name": "Undangan Sidang Real-Time",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "undangan-sidang"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "sheetId": "ISI_ID_SPREADSHEET",
+        "range": "Jadwal!A2:H"
+      },
+      "name": "Ambil Data Jadwal",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 2,
+      "position": [300, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ISI_ID_CREDENTIAL",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "sheetId": "ISI_ID_SPREADSHEET",
+        "range": "Dosen!A2:B"
+      },
+      "name": "Ambil Data Dosen",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 2,
+      "position": [300, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ISI_ID_CREDENTIAL",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const jadwal = items[0].json;\nconst dosenList = $items(\"Ambil Data Dosen\", 0).map(d => d.json);\n\nfunction getNoHP(kode) {\n  const found = dosenList.find(d => d[\"Kode Dosen\"] === kode);\n  return found ? found[\"Nomor WA\"] : null;\n}\n\nconst hasil = [];\nconst dosenPenguji = [\n  { peran: 'Ketua Sidang', kode: jadwal[\"Ketua Sidang\"] },\n  { peran: 'Sekretaris', kode: jadwal[\"Sekretaris\"] },\n  { peran: 'Anggota 1', kode: jadwal[\"Anggota1\"] },\n  { peran: 'Anggota 2', kode: jadwal[\"Anggota2\"] },\n];\n\nfor (const dosen of dosenPenguji) {\n  const no = getNoHP(dosen.kode);\n  if (no) {\n    hasil.push({\n      json: {\n        namaMahasiswa: jadwal[\"Nama Mahasiswa\"],\n        tanggal: jadwal[\"Tanggal Sidang\"],\n        jam: jadwal[\"Jam\"],\n        ruang: jadwal[\"Ruang\"],\n        peran: dosen.peran,\n        kode: dosen.kode,\n        nomorWA: no\n      }\n    });\n  }\n}\n\nreturn hasil;"
+      },
+      "name": "Siapkan Pesan",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://console.wablas.com/api/v2/send-message",
+        "authentication": "headerAuth",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "ISI_API_KEY_WABLAS"
+            }
+          ]
+        },
+        "responseFormat": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"phone\": \"{{$json[\"nomorWA\"]}}\",\n  \"message\": \"Yth. {{$json[\"peran\"]}} ({{$json[\"kode\"]}}), Anda ditugaskan sebagai penguji sidang mahasiswa: {{$json[\"namaMahasiswa\"]}} pada tanggal {{$json[\"tanggal\"]}}, jam {{$json[\"jam\"]}} di ruang {{$json[\"ruang\"]}}. Terima kasih.\"\n}"
+      },
+      "name": "Kirim WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [750, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Ambil Data Jadwal",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ambil Data Dosen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambil Data Jadwal": {
+      "main": [
+        [
+          {
+            "node": "Siapkan Pesan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambil Data Dosen": {
+      "main": [
+        [
+          {
+            "node": "Siapkan Pesan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Siapkan Pesan": {
+      "main": [
+        [
+          {
+            "node": "Kirim WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
