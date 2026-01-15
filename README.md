@@ -14,7 +14,7 @@
 ### add file
 
 ```
-$ vim add .file 
+$ nvim file (or vim add .file)
 ```
 
 ```bash
