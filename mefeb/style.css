@@ -1,0 +1,48 @@
+/*
+Theme Name: Magister Eonomi FEB UNSAM
+Theme URI: https://magisterekonomi.feb.unsam.ac.id/
+Author: Magister Ekonomi FEB UNSAM
+Description: Modern Minimalis, Informatif, dan Responsive untuk Program Magister Ekonomi FEB Universitas Samudra.
+Version: 1.0
+License: GNU General Public License v2 or later
+Text Domain: magister-ekonomi-feb-unsam
+*/
+
+body {
+  margin: 0;
+  font-family: "Poppins", Arial, sans-serif;
+  background-color: #f7f9fb;
+  color: #222;
+}
+
+a {
+  color: #004a8f;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.site-header,
+.site-footer {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.site-footer {
+  border-top: 1px solid #e5e5e5;
+  padding: 20px 0;
+  font-size: 14px;
+}
+
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.main-content {
+  padding: 40px 0;
+}
+k
