@@ -1,0 +1,9 @@
+# Installer
+*.sh
+
+# SSH keys
+*.pub
+mefeb/
+
+# Conda / Python
+__pycache__/
