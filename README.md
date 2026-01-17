@@ -18,7 +18,11 @@ $ nvim file (or vim add .file)
 ```
 
 ```bash
-$ git add file
+$ git add file dengan ekstensi (1 file)
+$ git add . (perubahan file terakhir di folder)
+$ git -A (semua perubahan)
+
+& git status 
 ```
 
 ### commit
