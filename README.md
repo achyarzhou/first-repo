@@ -36,7 +36,7 @@ $ git commit -m "? update"
 ```bash
 $ git push origin main
 ```
-jika ada konflik, cek $ git pull origin main --rebase
+if conflict, check $ git pull origin main --rebase
 ```
 
 ```bash
