@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Supply Demand Simulator</title>
+<style>
+body{font-family:Arial;margin:20px}
+canvas{border:1px solid #ccc}
+label{display:block;margin:8px 0}
+</style>
+</head>
+<body>
+<h2>Interactive Supply & Demand Simulator</h2>
+<label>Demand Shift (a): <input type="range" id="a" min="5" max="20" value="12" oninput="draw()"> <span id="aval"></span></label>
+<label>Supply Shift (b): <input type="range" id="b" min="0" max="10" value="3" oninput="draw()"> <span id="bval"></span></label>
+<canvas id="c" width="600" height="400"></canvas>
+<p id="eq"></p>
+<script>
+function draw(){
+ let a=+document.getElementById('a').value;
+ let b=+document.getElementById('b').value;
+ document.getElementById('aval').textContent=a;
+ document.getElementById('bval').textContent=b;
+ let c=document.getElementById('c'), ctx=c.getContext('2d');
+ ctx.clearRect(0,0,600,400);
+ ctx.beginPath(); ctx.moveTo(50,350); ctx.lineTo(550,350); ctx.moveTo(50,350); ctx.lineTo(50,50); ctx.stroke();
+ // demand Q = a - P ; supply Q = -b + P
+ ctx.strokeStyle="blue"; ctx.beginPath();
+ for(let p=0;p<=10;p+=0.1){
+   let q=a-p;
+   let x=50+q*30, y=350-p*25;
+   if(p===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+ } ctx.stroke();
+ ctx.strokeStyle="red"; ctx.beginPath();
+ for(let p=0;p<=10;p+=0.1){
+   let q=-b+p;
+   let x=50+q*30, y=350-p*25;
+   if(p===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+ } ctx.stroke();
+ let pEq=(a+b)/2;
+ let qEq=a-pEq;
+ let x=50+qEq*30, y=350-pEq*25;
+ ctx.fillStyle="black"; ctx.beginPath(); ctx.arc(x,y,5,0,6.28); ctx.fill();
+ document.getElementById('eq').textContent=`Equilibrium: Price=${pEq.toFixed(2)}, Quantity=${qEq.toFixed(2)}`;
+}
+draw();
+</script>
+</body>
+</html>

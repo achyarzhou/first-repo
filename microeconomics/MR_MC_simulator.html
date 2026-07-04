@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset='utf-8'><title>MR MC</title></head>
+<body style="font-family:Arial;margin:20px">
+<h2>MR = MC Simulator (Perfect Competition)</h2>
+<label>Market Price (MR): <input type="range" id="price" min="2" max="20" value="10" oninput="draw()"><span id="pval"></span></label><br>
+<label>Cost Pressure: <input type="range" id="cost" min="0" max="10" value="2" oninput="draw()"><span id="cval"></span></label><br>
+<canvas id="cv" width="700" height="420" style="border:1px solid #ccc"></canvas>
+<p id="out"></p>
+<script>
+function mc(q,c){ return 2+c+0.5*q; }
+function draw(){
+ let P=+document.getElementById('price').value;
+ let c=+document.getElementById('cost').value;
+ document.getElementById('pval').innerText=' '+P;
+ document.getElementById('cval').innerText=' '+c;
+ let cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+ ctx.clearRect(0,0,700,420);
+ ctx.beginPath(); ctx.moveTo(50,370); ctx.lineTo(650,370); ctx.moveTo(50,370); ctx.lineTo(50,40); ctx.stroke();
+ ctx.strokeStyle='red'; ctx.beginPath();
+ for(let q=0;q<=20;q+=0.1){ let y=mc(q,c); let x=50+q*28; let py=370-y*15; if(q==0) ctx.moveTo(x,py); else ctx.lineTo(x,py);}
+ ctx.stroke();
+ ctx.strokeStyle='blue'; let yMR=370-P*15; ctx.beginPath(); ctx.moveTo(50,yMR); ctx.lineTo(650,yMR); ctx.stroke();
+ let qstar=(P-(2+c))/0.5; if(qstar<0) qstar=0;
+ let x=50+qstar*28, y=370-P*15;
+ ctx.fillStyle='black'; ctx.beginPath(); ctx.arc(x,y,5,0,6.28); ctx.fill();
+ document.getElementById('out').innerHTML='Optimal Output Q* = <b>'+qstar.toFixed(2)+'</b> units';
+}
+draw();
+</script></body></html>
