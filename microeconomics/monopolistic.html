@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Simulator Pasar Monopolistik</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f5f5f5;margin:20px}
+canvas{background:#fff;border:1px solid #999}
+.controls{margin:10px 0}
+label{display:block;margin:6px 0}
+table{border-collapse:collapse;margin-top:10px}
+td,th{border:1px solid #ccc;padding:6px}
+</style>
+</head>
+<body>
+<h2>Simulator Kurva Pasar Monopolistik</h2>
+<div class="controls">
+<label>Demand <input id="d" type="range" min="20" max="60" value="40"></label>
+<label>MC <input id="mc" type="range" min="5" max="25" value="12"></label>
+<label>ATC <input id="atc" type="range" min="10" max="30" value="18"></label>
+</div>
+<canvas id="c" width="800" height="500"></canvas>
+<table>
+<tr><th>Simbol</th><th>Keterangan</th></tr>
+<tr><td>AR</td><td>Average Revenue (Demand)</td></tr>
+<tr><td>MR</td><td>Marginal Revenue</td></tr>
+<tr><td>MC</td><td>Marginal Cost</td></tr>
+<tr><td>ATC</td><td>Average Total Cost</td></tr>
+<tr><td>P*</td><td>Harga optimal</td></tr>
+<tr><td>Q*</td><td>Output optimal (MR=MC)</td></tr>
+</table>
+<p id="out"></p>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const sx=x=>70+x*12, sy=y=>450-y*8;
+function draw(){
+ctx.clearRect(0,0,800,500);
+ctx.beginPath();ctx.moveTo(70,20);ctx.lineTo(70,450);ctx.lineTo(760,450);ctx.stroke();
+ctx.fillText("Harga/Biaya",5,20);ctx.fillText("Output",730,470);
+
+let a=+d.value,b=0.5,mc0=+mc.value,atc0=+atc.value;
+function AR(x){return a-b*x;}
+function MR(x){return a-2*b*x;}
+function MC(x){return mc0+0.08*(x-20)*(x-20);}
+function ATC(x){return atc0+0.05*(x-20)*(x-20);}
+function curve(fn,color){
+ctx.beginPath();ctx.strokeStyle=color;
+for(let x=0;x<=50;x++){
+let X=sx(x),Y=sy(fn(x));
+if(x===0)ctx.moveTo(X,Y);else ctx.lineTo(X,Y);
+}
+ctx.stroke();
+}
+curve(AR,"blue");curve(MR,"green");curve(MC,"red");curve(ATC,"orange");
+
+let q=0,best=1e9;
+for(let x=0;x<=50;x+=0.1){
+let diff=Math.abs(MR(x)-MC(x));
+if(diff<best){best=diff;q=x;}
+}
+let p=AR(q),atc=ATC(q);
+ctx.strokeStyle="#000";
+ctx.beginPath();ctx.moveTo(sx(q),450);ctx.lineTo(sx(q),sy(p));ctx.stroke();
+ctx.beginPath();ctx.moveTo(70,sy(p));ctx.lineTo(sx(q),sy(p));ctx.stroke();
+ctx.fillStyle="black";
+ctx.beginPath();ctx.arc(sx(q),sy(p),4,0,Math.PI*2);ctx.fill();
+ctx.fillText("P*",sx(q)+5,sy(p)-5);
+ctx.fillText("Q*",sx(q)-10,465);
+
+ctx.fillStyle=(p>atc)?"rgba(0,200,0,.25)":"rgba(255,0,0,.25)";
+ctx.fillRect(sx(0),Math.min(sy(p),sy(atc)),sx(q)-sx(0),Math.abs(sy(atc)-sy(p)));
+
+out.innerHTML=`<b>Q*</b> = ${q.toFixed(2)} | <b>P*</b> = ${p.toFixed(2)} | <b>ATC</b> = ${atc.toFixed(2)} | ${(p>atc?"Laba":"Rugi")} = ${((p-atc)*q).toFixed(2)}`;
+ctx.fillStyle="blue";ctx.fillText("AR",680,60);
+ctx.fillStyle="green";ctx.fillText("MR",680,80);
+ctx.fillStyle="red";ctx.fillText("MC",680,100);
+ctx.fillStyle="orange";ctx.fillText("ATC",680,120);
+}
+["d","mc","atc"].forEach(id=>document.getElementById(id).oninput=draw);
+draw();
+</script>
+</body>
+</html>
