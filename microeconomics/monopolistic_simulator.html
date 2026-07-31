@@ -215,7 +215,7 @@ input[type="number"] { height: auto; padding: 6px; }
       <h3>⚙️ Pengaturan Simulasi</h3>
       
       <div class="control-group">
-        <div class="control-label"><span>Demand (a)</span><span id="d-val">40</span></div>
+        <div class="control-label"><span>Demand (a) per firma</span><span id="d-val">40</span></div>
         <input id="d" type="range" min="10" max="80" value="40">
       </div>
       
@@ -292,6 +292,11 @@ let longRunInterval = null;
 let longRunActive = false;
 let longRunTolerance = 0.03; // toleransi P ~ ATC
 
+// baseMarketDemand adalah total pasar (intersep permintaan agregat).
+// Kami menjaga baseMarketDemand konstan saat entry/exit: ketika jumlah perusahaan berubah,
+// a (permintaan per firma) disesuaikan sebagai baseMarketDemand / firms.
+let baseMarketDemand = Number(dInput.value) * Number(firmsInput.value);
+
 function updateValueDisplay(inputId, displayId, fmt) {
   const val = document.getElementById(inputId).value;
   document.getElementById(displayId).textContent = fmt ? fmt(val) : val;
@@ -300,6 +305,7 @@ function updateValueDisplay(inputId, displayId, fmt) {
 function resetControls() {
   dInput.value = 40; mcInput.value = 12; atcInput.value = 18;
   firmsInput.value = 10; sensitivityInput.value = 0.5; speedInput.value = 80; monthsInput.value = 1;
+  baseMarketDemand = Number(dInput.value) * Number(firmsInput.value);
   updateAllDisplays();
   stopLongRun();
   draw();
@@ -316,7 +322,27 @@ function updateAllDisplays() {
 }
 
 // Event listeners
-[dInput, mcInput, atcInput, firmsInput].forEach(inp => inp.addEventListener('input', () => { updateAllDisplays(); stopLongRun(); draw(); }));
+// Jika user mengubah a (d) secara manual, anggap ini perubahan total pasar -> perbarui baseMarketDemand
+dInput.addEventListener('input', () => {
+  // update baseMarketDemand = a_per_firm * firms
+  baseMarketDemand = Number(dInput.value) * Number(firmsInput.value);
+  updateAllDisplays();
+  stopLongRun();
+  draw();
+});
+
+// Jika user mengubah jumlah firms, kita hitung ulang a_per_firm dari baseMarketDemand
+firmsInput.addEventListener('input', () => {
+  const firms = Number(firmsInput.value);
+  // hindari pembagian 0
+  const newA = Math.max(5, baseMarketDemand / Math.max(1, firms));
+  dInput.value = Number(newA.toFixed(2));
+  updateAllDisplays();
+  stopLongRun();
+  draw();
+});
+
+[mcInput, atcInput].forEach(inp => inp.addEventListener('input', () => { updateAllDisplays(); stopLongRun(); draw(); }));
 [sensitivityInput, monthsInput].forEach(inp => inp.addEventListener('input', () => { updateAllDisplays(); }));
 speedInput.addEventListener('input', () => { updateAllDisplays(); if (longRunActive) startLongRun(); });
 
@@ -331,11 +357,11 @@ function startLongRun() {
 
   longRunInterval = setInterval(() => {
     // setiap langkah, hitung q dari MR=MC, p dari AR(q) dan atc dari ATC(q)
-    let a = +dInput.value;
-    let b = 0.5;
-    let mc0 = +mcInput.value;
-    let atc0 = +atcInput.value;
-    let sensitivity = Number(sensitivityInput.value);
+    let a = Number(dInput.value);
+    const b = 0.5;
+    const mc0 = Number(mcInput.value);
+    const atc0 = Number(atcInput.value);
+    const sensitivity = Number(sensitivityInput.value);
 
     function AR(x) { return a - b * x; }
     function MR(x) { return a - 2 * b * x; }
@@ -347,19 +373,18 @@ function startLongRun() {
     for (let x = 0; x <= 80; x += 0.1) { let diff = Math.abs(MR(x) - MC(x)); if (diff < best) { best = diff; q = x; } }
     let p = AR(q); let atc = ATC(q); let profit = (p - atc) * q;
 
-    // perubahan a (perubahan permintaan firm) masih dipengaruhi oleh entry/exit
-    let step = 0.12; // dasar perubahan a
+    // Entry/exit mempengaruhi JUMLAH firms, bukan total pasar (baseMarketDemand tetap)
     if (Math.abs(p - atc) > longRunTolerance) {
       if (p > atc) {
-        // laba positif -> entry -> permintaan firma menurun
-        dInput.value = Math.max(5, Number(dInput.value) - step);
-        // entry: tambahkan perkiraan perusahaan
+        // laba positif -> entry -> firms naik
         firmsInput.value = Math.min(100, Number(firmsInput.value) + sensitivity);
       } else if (p < atc) {
-        // rugi -> exit -> permintaan firma naik
-        dInput.value = Math.min(80, Number(dInput.value) + step);
+        // rugi -> exit -> firms turun
         firmsInput.value = Math.max(1, Number(firmsInput.value) - sensitivity);
       }
+      // perbarui a per firma sesuai baseMarketDemand
+      const firms = Number(firmsInput.value);
+      dInput.value = Number(Math.max(5, (baseMarketDemand / Math.max(1, firms))).toFixed(2));
       updateAllDisplays();
       draw();
     } else {
@@ -367,7 +392,7 @@ function startLongRun() {
       stopLongRun();
       lrStatus.textContent = 'Long-run equilibrium tercapai (P ≈ ATC)';
     }
-  }, Number(speedInput.value));
+  }, interval);
 }
 
 function stopLongRun() {
@@ -379,31 +404,35 @@ function stopLongRun() {
 
 function estimateStepsToLongRun() {
   // gunakan salinan variabel untuk mensimulasikan berapa langkah yang dibutuhkan
-  let a = Number(dInput.value);
+  let firms = Number(firmsInput.value);
   const b = 0.5;
   const mc0 = Number(mcInput.value);
   const atc0 = Number(atcInput.value);
   const sensitivity = Number(sensitivityInput.value);
-  const step = 0.12;
   const tol = longRunTolerance;
   const maxSteps = 20000;
   let steps = 0;
-  function AR(x) { return a - b * x; }
-  function MR(x) { return a - 2 * b * x; }
-  function MC(x) { return mc0 + 0.08 * (x - 20) * (x - 20); }
-  function ATC(x) { return atc0 + 0.05 * (x - 20) * (x - 20); }
+
+  function AR_from_a(a){ return function(x){ return a - b * x; }; }
+  function MR_from_a(a){ return function(x){ return a - 2*b * x; }; }
+  function MC(x){ return mc0 + 0.08 * (x - 20) * (x - 20); }
+  function ATC(x){ return atc0 + 0.05 * (x - 20) * (x - 20); }
 
   while (steps < maxSteps) {
+    const a = baseMarketDemand / Math.max(1, firms);
     // cari q
     let q = 0, best = 1e9;
-    for (let x = 0; x <= 80; x += 0.1) { let diff = Math.abs(MR(x) - MC(x)); if (diff < best) { best = diff; q = x; } }
-    let p = AR(q); let atc = ATC(q);
+    const MR = MR_from_a(a);
+    for (let x=0;x<=80;x+=0.1){ let diff = Math.abs(MR(x) - MC(x)); if (diff < best){ best = diff; q = x; } }
+    const AR = AR_from_a(a);
+    const p = AR(q);
+    const atc = ATC(q);
     if (Math.abs(p - atc) <= tol) break;
-    if (p > atc) a = Math.max(5, a - step);
-    else a = Math.min(80, a + step);
+    if (p > atc) firms = Math.min(100, firms + sensitivity);
+    else firms = Math.max(1, firms - sensitivity);
     steps++;
   }
-  return steps === maxSteps ? null : steps; // null berarti tak tercapai dalam batas
+  return steps === maxSteps ? null : steps;
 }
 
 function draw() {
@@ -411,7 +440,7 @@ function draw() {
   drawGrid(); drawAxis();
 
   // Parameter
-  let a = +dInput.value; let b = 0.5; let mc0 = +mcInput.value; let atc0 = +atcInput.value;
+  let a = Number(dInput.value); let b = 0.5; let mc0 = Number(mcInput.value); let atc0 = Number(atcInput.value);
   function AR(x) { return a - b * x; }
   function MR(x) { return a - 2 * b * x; }
   function MC(x) { return mc0 + 0.08 * (x - 20) * (x - 20); }
@@ -445,7 +474,7 @@ function updateResults(q,p,atc,profit){ const isProfitable = profit>0.0001; cons
   if (steps === null) timeText = 'Tidak tercapai dalam batas simulasi';
   else {
     const monthsPerStep = Number(monthsInput.value);
-    const totalMonths = steps * monthsPerStep;
+    const totalMonths = Math.round(steps * monthsPerStep);
     const years = Math.floor(totalMonths/12);
     const months = totalMonths % 12;
     timeText = `${totalMonths} bln (≈ ${years} thn ${months} bln)`;
