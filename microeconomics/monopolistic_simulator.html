@@ -485,7 +485,7 @@ function updateResults(q,p,atc,profit){ const isProfitable = profit>0.0001; cons
     <div class="result-item"><div class="result-label">Harga Optimal (P*)</div><div class="result-value">${p.toFixed(2)}</div></div>
     <div class="result-item"><div class="result-label">Biaya Rata-rata (ATC)</div><div class="result-value">${atc.toFixed(2)}</div></div>
     <div class="result-item"><div class="result-label">Jumlah Perusahaan (perkiraan)</div><div class="result-value">${Number(firmsInput.value).toFixed(1)}</div></div>
-    <div class="result-item"><div class="result-label">Status Jangka Panjang</div><div class="result-value ${isProfitable ? 'profit' : 'loss'}">${isProfitable ? 'Laba positif' : 'Tidak ada laba (≤ 0)'}</div></div>
+    <div class="result-item"><div class="result-label">Status Jangka Panjang</div><div class="result-value ${isProfitable ? 'profit' : 'loss'}">${isProfitable ? 'Laba positif' : 'Tidak ada laba ([...]
     <div class="result-item"><div class="result-label">Keuntungan / Kerugian</div><div class="result-value ${isProfitable ? 'profit' : 'loss'}">${Math.abs(profit).toFixed(2)}</div></div>
     <div class="result-item"><div class="result-label">Estimasi waktu ke Long-run</div><div class="result-value">${timeText}</div></div>
   `;
