@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Simulator Pasar Monopolistik Interaktif</title>
+<title>Simulator Pasar Monopolistik Interaktif - Long Run</title>
 <style>
 * {
   margin: 0;
@@ -41,7 +41,7 @@ h1 {
 
 .main-content {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: 1fr 320px;
   gap: 30px;
   margin-bottom: 30px;
 }
@@ -75,7 +75,7 @@ canvas {
 }
 
 .control-group {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .control-label {
@@ -135,7 +135,7 @@ input[type="range"]::-moz-range-thumb:hover {
   background: #764ba2;
 }
 
-.reset-btn {
+.reset-btn, .sim-btn {
   width: 100%;
   padding: 10px;
   background: #667eea;
@@ -148,7 +148,7 @@ input[type="range"]::-moz-range-thumb:hover {
   margin-top: 10px;
 }
 
-.reset-btn:hover {
+.reset-btn:hover, .sim-btn:hover {
   background: #764ba2;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
@@ -277,11 +277,11 @@ input[type="range"]::-moz-range-thumb:hover {
 <body>
 <div class="container">
   <h1>📊 Simulator Pasar Monopolistik Interaktif</h1>
-  <p class="subtitle">Simulasi kurva permintaan, biaya, dan keuntungan pasar monopolistik secara real-time</p>
+  <p class="subtitle">Simulasi kurva permintaan, biaya, dan penyesuaian jangka panjang (masuk/keluar perusahaan) secara interaktif</p>
   
   <div class="main-content">
     <div class="canvas-wrapper">
-      <canvas id="c" width="700" height="500"></canvas>
+      <canvas id="c" width="760" height="520"></canvas>
     </div>
     
     <div class="controls-panel">
@@ -292,7 +292,7 @@ input[type="range"]::-moz-range-thumb:hover {
           <span>Demand (a)</span>
           <span id="d-val">40</span>
         </div>
-        <input id="d" type="range" min="20" max="60" value="40">
+        <input id="d" type="range" min="10" max="80" value="40">
       </div>
       
       <div class="control-group">
@@ -300,7 +300,7 @@ input[type="range"]::-moz-range-thumb:hover {
           <span>MC (Intersep)</span>
           <span id="mc-val">12</span>
         </div>
-        <input id="mc" type="range" min="5" max="25" value="12">
+        <input id="mc" type="range" min="0" max="40" value="12">
       </div>
       
       <div class="control-group">
@@ -308,9 +308,25 @@ input[type="range"]::-moz-range-thumb:hover {
           <span>ATC (Intersep)</span>
           <span id="atc-val">18</span>
         </div>
-        <input id="atc" type="range" min="10" max="30" value="18">
+        <input id="atc" type="range" min="5" max="50" value="18">
       </div>
-      
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Kecepatan Penyesuaian Jangka Panjang</span>
+          <span id="speed-val">80 ms</span>
+        </div>
+        <input id="speed" type="range" min="20" max="400" value="80">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Status Long Run</span>
+          <span id="lr-status">Idle</span>
+        </div>
+      </div>
+
+      <button class="sim-btn" id="startLR">▶️ Mulai Simulasi Jangka Panjang</button>
       <button class="reset-btn" onclick="resetControls()">🔄 Reset ke Default</button>
     </div>
   </div>
@@ -325,7 +341,7 @@ input[type="range"]::-moz-range-thumb:hover {
     <div class="legend-grid">
       <div class="legend-item">
         <div class="legend-color ar"></div>
-        <span><strong>AR</strong> - Average Revenue (Kurva Permintaan)</span>
+        <span><strong>AR</strong> - Average Revenue (Kurva Permintaan per Firma)</span>
       </div>
       <div class="legend-item">
         <div class="legend-color mr"></div>
@@ -346,10 +362,7 @@ input[type="range"]::-moz-range-thumb:hover {
         <span><strong>Q*</strong> - Output optimal (MR = MC)</span>
       </div>
       <div class="legend-item">
-        <span><strong>Area Hijau</strong> - Zona keuntungan (Profit)</span>
-      </div>
-      <div class="legend-item">
-        <span><strong>Area Merah</strong> - Zona kerugian (Loss)</span>
+        <span><strong>Long-run</strong> - Penyesuaian: pesaing masuk/keluar hingga P = ATC (laba normal)</span>
       </div>
     </div>
   </div>
@@ -361,6 +374,13 @@ const ctx = cv.getContext('2d');
 const dInput = document.getElementById('d');
 const mcInput = document.getElementById('mc');
 const atcInput = document.getElementById('atc');
+const speedInput = document.getElementById('speed');
+const startLRBtn = document.getElementById('startLR');
+const lrStatus = document.getElementById('lr-status');
+
+let longRunInterval = null;
+let longRunActive = false;
+let longRunTolerance = 0.03; // toleransi P ~ ATC
 
 function updateValueDisplay(inputId, displayId) {
   document.getElementById(displayId).textContent = document.getElementById(inputId).value;
@@ -370,78 +390,148 @@ function resetControls() {
   dInput.value = 40;
   mcInput.value = 12;
   atcInput.value = 18;
+  speedInput.value = 80;
   updateValueDisplay('d', 'd-val');
   updateValueDisplay('mc', 'mc-val');
   updateValueDisplay('atc', 'atc-val');
+  updateValueDisplay('speed', 'speed-val');
+  stopLongRun();
   draw();
 }
 
 // Event listeners untuk update nilai
-dInput.addEventListener('input', () => {
-  updateValueDisplay('d', 'd-val');
-  draw();
+[dInput, mcInput, atcInput].forEach(inp => {
+  inp.addEventListener('input', () => {
+    updateValueDisplay(inp.id, inp.id + '-val');
+    stopLongRun();
+    draw();
+  });
 });
 
-mcInput.addEventListener('input', () => {
-  updateValueDisplay('mc', 'mc-val');
-  draw();
+speedInput.addEventListener('input', () => {
+  updateValueDisplay('speed', 'speed-val');
+  if (longRunActive) {
+    // restart with new speed
+    startLongRun();
+  }
 });
 
-atcInput.addEventListener('input', () => {
-  updateValueDisplay('atc', 'atc-val');
-  draw();
+startLRBtn.addEventListener('click', () => {
+  if (!longRunActive) startLongRun();
+  else stopLongRun();
 });
+
+function startLongRun() {
+  stopLongRun();
+  longRunActive = true;
+  startLRBtn.textContent = '⏸️ Pause Simulasi Jangka Panjang';
+  lrStatus.textContent = 'Running';
+  const interval = Number(speedInput.value);
+
+  longRunInterval = setInterval(() => {
+    // setiap langkah, hitung q dari MR=MC, p dari AR(q) dan atc dari ATC(q)
+    let a = +dInput.value;
+    let b = 0.5;
+    let mc0 = +mcInput.value;
+    let atc0 = +atcInput.value;
+
+    function AR(x) { return a - b * x; }
+    function MR(x) { return a - 2 * b * x; }
+    function MC(x) { return mc0 + 0.08 * (x - 20) * (x - 20); }
+    function ATC(x) { return atc0 + 0.05 * (x - 20) * (x - 20); }
+
+    // cari q (MR=MC)
+    let q = 0, best = 1e9;
+    for (let x = 0; x <= 80; x += 0.1) {
+      let diff = Math.abs(MR(x) - MC(x));
+      if (diff < best) {
+        best = diff;
+        q = x;
+      }
+    }
+    let p = AR(q);
+    let atc = ATC(q);
+    let profit = (p - atc) * q;
+
+    // jika firm punya laba positif, pesaing akan masuk -> kurva permintaan firma bergeser ke kiri (a turun)
+    // jika rugi, beberapa keluar -> a naik
+    // adjustment speed tergantung sign(profit)
+    let step = 0.15; // tiap langkah perubahan a
+    // semakin besar q, perubahan sedikit lebih lambat
+    if (Math.abs(p - atc) > longRunTolerance) {
+      if (p > atc) {
+        // laba positif -> entry -> permintaan turun
+        dInput.value = Math.max(10, Number(dInput.value) - step);
+      } else if (p < atc) {
+        // rugi -> exit -> permintaan naik
+        dInput.value = Math.min(80, Number(dInput.value) + step);
+      }
+      updateValueDisplay('d', 'd-val');
+      draw();
+    } else {
+      // kondisi jangka panjang tercapai (P ≈ ATC)
+      stopLongRun();
+      lrStatus.textContent = 'Long-run equilibrium tercapai (P ≈ ATC)';
+    }
+  }, Number(speedInput.value));
+}
+
+function stopLongRun() {
+  if (longRunInterval) clearInterval(longRunInterval);
+  longRunInterval = null;
+  longRunActive = false;
+  startLRBtn.textContent = '▶️ Mulai Simulasi Jangka Panjang';
+  lrStatus.textContent = 'Idle';
+}
 
 function draw() {
   ctx.clearRect(0, 0, cv.width, cv.height);
-  
-  // Gambar grid
   drawGrid();
-  
-  // Gambar axis
   drawAxis();
-  
+
   // Parameter
   let a = +dInput.value;
   let b = 0.5;
   let mc0 = +mcInput.value;
   let atc0 = +atcInput.value;
-  
+
   // Fungsi kurva
   function AR(x) { return a - b * x; }
   function MR(x) { return a - 2 * b * x; }
   function MC(x) { return mc0 + 0.08 * (x - 20) * (x - 20); }
   function ATC(x) { return atc0 + 0.05 * (x - 20) * (x - 20); }
-  
+
   // Gambar kurva
   drawCurve(AR, '#3498db', 2);
   drawCurve(MR, '#2ecc71', 2);
   drawCurve(MC, '#e74c3c', 2);
   drawCurve(ATC, '#f39c12', 2);
-  
+
   // Cari titik optimal (MR = MC)
   let q = 0, best = 1e9;
-  for (let x = 0; x <= 50; x += 0.1) {
+  for (let x = 0; x <= 80; x += 0.1) {
     let diff = Math.abs(MR(x) - MC(x));
-    if (diff < best) {
-      best = diff;
-      q = x;
-    }
+    if (diff < best) { best = diff; q = x; }
   }
-  
+
   let p = AR(q);
   let atc = ATC(q);
   let profit = (p - atc) * q;
-  
+
   // Gambar daerah keuntungan/kerugian
   drawProfitArea(q, p, atc, profit);
-  
+
   // Gambar titik optimal dan garis vertikal/horizontal
   drawOptimalPoint(q, p, atc);
-  
+
+  // Jika dalam proses long-run, tunjukkan garis harga akhir (P = ATC) ketika sudah mendekati
+  if (!longRunActive && Math.abs(p - atc) <= longRunTolerance) {
+    drawLongRunMarker(p);
+  }
+
   // Gambar label legenda kurva
   drawLegendLabels();
-  
+
   // Update hasil di panel
   updateResults(q, p, atc, profit);
 }
@@ -449,22 +539,20 @@ function draw() {
 function drawGrid() {
   ctx.strokeStyle = '#f0f0f0';
   ctx.lineWidth = 1;
-  
   // Grid vertikal
-  for (let i = 0; i <= 50; i += 5) {
-    let x = 60 + i * 12;
+  for (let i = 0; i <= 80; i += 5) {
+    let x = 60 + i * 8;
     ctx.beginPath();
     ctx.moveTo(x, 30);
-    ctx.lineTo(x, 450);
+    ctx.lineTo(x, 480);
     ctx.stroke();
   }
-  
   // Grid horizontal
-  for (let i = 0; i <= 50; i += 5) {
-    let y = 450 - i * 8;
+  for (let i = 0; i <= 80; i += 5) {
+    let y = 480 - i * 5.5;
     ctx.beginPath();
     ctx.moveTo(60, y);
-    ctx.lineTo(660, y);
+    ctx.lineTo(700, y);
     ctx.stroke();
   }
 }
@@ -472,45 +560,39 @@ function drawGrid() {
 function drawAxis() {
   ctx.strokeStyle = '#333';
   ctx.lineWidth = 2;
-  
   // Y-axis
   ctx.beginPath();
   ctx.moveTo(60, 30);
-  ctx.lineTo(60, 450);
+  ctx.lineTo(60, 480);
   ctx.stroke();
-  
   // X-axis
   ctx.beginPath();
-  ctx.moveTo(60, 450);
-  ctx.lineTo(680, 450);
+  ctx.moveTo(60, 480);
+  ctx.lineTo(720, 480);
   ctx.stroke();
-  
   // Label axis
   ctx.fillStyle = '#333';
   ctx.font = 'bold 12px Arial';
   ctx.fillText('Harga/Biaya (P)', 10, 25);
-  ctx.fillText('Output (Q)', 620, 470);
-  
+  ctx.fillText('Output (Q)', 660, 498);
   // Tick marks dan angka
   ctx.font = '11px Arial';
   ctx.fillStyle = '#666';
-  for (let i = 0; i <= 50; i += 10) {
-    let x = 60 + i * 12;
-    let y = 450 - i * 8;
-    
+  for (let i = 0; i <= 80; i += 10) {
+    let x = 60 + i * 8;
+    let y = 480 - i * 5.5;
     // X-axis ticks
     ctx.beginPath();
-    ctx.moveTo(x, 450);
-    ctx.lineTo(x, 458);
+    ctx.moveTo(x, 480);
+    ctx.lineTo(x, 488);
     ctx.stroke();
-    ctx.fillText(i, x - 5, 470);
-    
+    ctx.fillText(i, x - 8, 500);
     // Y-axis ticks
     ctx.beginPath();
     ctx.moveTo(52, y);
     ctx.lineTo(60, y);
     ctx.stroke();
-    ctx.fillText(i, 30, y + 4);
+    ctx.fillText(i, 30, y + 3);
   }
 }
 
@@ -518,17 +600,12 @@ function drawCurve(fn, color, lineWidth) {
   ctx.strokeStyle = color;
   ctx.lineWidth = lineWidth;
   ctx.beginPath();
-  
-  for (let x = 0; x <= 50; x += 0.5) {
-    let X = 60 + x * 12;
-    let Y = 450 - fn(x) * 8;
-    
-    if (Y >= 30 && Y <= 450) {
-      if (x === 0) {
-        ctx.moveTo(X, Y);
-      } else {
-        ctx.lineTo(X, Y);
-      }
+  for (let x = 0; x <= 80; x += 0.3) {
+    let X = 60 + x * 8;
+    let Y = 480 - fn(x) * 5.5;
+    if (Y >= 30 && Y <= 480) {
+      if (x === 0) ctx.moveTo(X, Y);
+      else ctx.lineTo(X, Y);
     }
   }
   ctx.stroke();
@@ -536,69 +613,74 @@ function drawCurve(fn, color, lineWidth) {
 
 function drawProfitArea(q, p, atc, profit) {
   let x1 = 60;
-  let x2 = 60 + q * 12;
-  let y1 = 450 - p * 8;
-  let y2 = 450 - atc * 8;
-  
-  if (profit > 0) {
-    ctx.fillStyle = 'rgba(46, 204, 113, 0.15)';
-  } else {
-    ctx.fillStyle = 'rgba(231, 76, 60, 0.15)';
-  }
-  
+  let x2 = 60 + q * 8;
+  let y1 = 480 - p * 5.5;
+  let y2 = 480 - atc * 5.5;
+  if (profit > 0) ctx.fillStyle = 'rgba(46, 204, 113, 0.15)';
+  else ctx.fillStyle = 'rgba(231, 76, 60, 0.15)';
   ctx.fillRect(x1, Math.min(y1, y2), x2 - x1, Math.abs(y2 - y1));
 }
 
 function drawOptimalPoint(q, p, atc) {
-  let x = 60 + q * 12;
-  let y = 450 - p * 8;
-  
-  // Garis vertikal dari titik ke x-axis
+  let x = 60 + q * 8;
+  let y = 480 - p * 5.5;
+  // Garis vertikal
   ctx.strokeStyle = '#666';
   ctx.lineWidth = 1;
-  ctx.setLineDash([5, 5]);
+  ctx.setLineDash([5,5]);
   ctx.beginPath();
   ctx.moveTo(x, y);
-  ctx.lineTo(x, 450);
+  ctx.lineTo(x, 480);
   ctx.stroke();
-  
-  // Garis horizontal dari titik ke y-axis
+  // Garis horizontal
   ctx.beginPath();
   ctx.moveTo(60, y);
   ctx.lineTo(x, y);
   ctx.stroke();
-  
   ctx.setLineDash([]);
-  
   // Titik optimal P*
   ctx.fillStyle = '#000';
   ctx.beginPath();
   ctx.arc(x, y, 5, 0, Math.PI * 2);
   ctx.fill();
-  
   // Label
   ctx.fillStyle = '#000';
   ctx.font = 'bold 12px Arial';
   ctx.fillText('P*', x + 8, y - 8);
-  ctx.fillText('Q*', x - 8, 468);
+  ctx.fillText('Q*', x - 6, 496);
+}
+
+function drawLongRunMarker(price) {
+  // Garis horizontal menandakan P = ATC
+  let y = 480 - price * 5.5;
+  ctx.strokeStyle = '#8e44ad';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  ctx.moveTo(60, y);
+  ctx.lineTo(720, y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#8e44ad';
+  ctx.font = '12px Arial';
+  ctx.fillText('Long-run price (P = ATC)', 64, y - 8);
 }
 
 function drawLegendLabels() {
   ctx.font = '11px Arial';
   ctx.fillStyle = '#3498db';
-  ctx.fillText('AR', 620, 80);
+  ctx.fillText('AR', 660, 80);
   ctx.fillStyle = '#2ecc71';
-  ctx.fillText('MR', 620, 100);
+  ctx.fillText('MR', 660, 100);
   ctx.fillStyle = '#e74c3c';
-  ctx.fillText('MC', 620, 120);
+  ctx.fillText('MC', 660, 120);
   ctx.fillStyle = '#f39c12';
-  ctx.fillText('ATC', 620, 140);
+  ctx.fillText('ATC', 660, 140);
 }
 
 function updateResults(q, p, atc, profit) {
-  const isProfitable = profit > 0;
+  const isProfitable = profit > 0.0001;
   const resultsGrid = document.getElementById('resultsGrid');
-  
   resultsGrid.innerHTML = `
     <div class="result-item">
       <div class="result-label">Output Optimal (Q*)</div>
@@ -613,13 +695,23 @@ function updateResults(q, p, atc, profit) {
       <div class="result-value">${atc.toFixed(2)}</div>
     </div>
     <div class="result-item">
-      <div class="result-label">${isProfitable ? '✓ KEUNTUNGAN' : '✗ KERUGIAN'}</div>
+      <div class="result-label">Status Jangka Panjang</div>
+      <div class="result-value ${isProfitable ? 'profit' : 'loss'}">${isProfitable ? 'Laba positif' : 'Tidak ada laba (≤ 0)'}</div>
+    </div>
+    <div class="result-item">
+      <div class="result-label">Keuntungan / Kerugian</div>
       <div class="result-value ${isProfitable ? 'profit' : 'loss'}">${Math.abs(profit).toFixed(2)}</div>
     </div>
   `;
 }
 
-// Initial draw
+// Initial display and draw
+updateValueDisplay('d', 'd-val');
+updateValueDisplay('mc', 'mc-val');
+updateValueDisplay('atc', 'atc-val');
+updateValueDisplay('speed', 'speed-val');
+
+// draw initially
 draw();
 </script>
 </body>
