@@ -1,4 +1,4 @@
-<?php getheader(); ?>
+<?php get_header(); ?>
 
 <section class="hero">
   <div class="hero-text">
@@ -27,6 +27,23 @@
       <h3>Jaringan Luas</h3>
       <p>Kerja sama dengan instansi pemerintah, perbankan, dan sektor swasta.</p>
     </div>
+  </div>
+</section>
+
+<!-- Bidang Konsentrasi -->
+<section class="section" id="konsentrasi">
+  <h2>Bidang Konsentrasi</h2>
+  <p class="muted">Pilih bidang yang sesuai dengan tujuan karier Anda. Klik kartu untuk melihat ringkasan.</p>
+  <div class="grid-5 konsentrasi-grid">
+    <button class="konsentrasi-card" data-title="Ekonomi Keuangan Negara dan Daerah" data-desc="Fokus pada kebijakan fiskal, manajemen keuangan pemerintah pusat dan daerah, serta evaluasi program publik.">Ekonomi Keuangan Negara & Daerah</button>
+
+    <button class="konsentrasi-card" data-title="Ekonomi Pariwisata" data-desc="Studi tentang pengembangan pariwisata berkelanjutan, dampak ekonomi, dan kebijakan destinasi.">Ekonomi Pariwisata</button>
+
+    <button class="konsentrasi-card" data-title="Ekonomi Keuangan Pasar Modal" data-desc="Materi tentang pasar modal, instrumen keuangan, analisis investasi, dan regulasi pasar modal.">Ekonomi Keuangan Pasar Modal</button>
+
+    <button class="konsentrasi-card" data-title="Ekonomi Perencanaan dan Pembangunan" data-desc="Perencanaan pembangunan, evaluasi proyek, kebijakan pembangunan regional dan nasional.">Perencanaan & Pembangunan</button>
+
+    <button class="konsentrasi-card" data-title="Ekonomi Sumber Daya Manusia" data-desc="Analisis pasar tenaga kerja, kebijakan SDM, dan pengembangan kompetensi tenaga kerja untuk pembangunan ekonomi.">Sumber Daya Manusia</button>
   </div>
 </section>
 
@@ -65,6 +82,17 @@
   </div>
 </section>
 
-<?php get_footer(); ?>
+<!-- Modal for Konsentrasi -->
+<div id="konsentrasi-modal" class="modal" aria-hidden="true" role="dialog" aria-label="Detail konsentrasi">
+  <div class="modal-panel" role="document">
+    <button class="modal-close" aria-label="Close">&times;</button>
+    <h3 class="modal-title"></h3>
+    <p class="modal-desc"></p>
+    <div class="modal-actions">
+      <a href="#pendaftaran" class="btn btn-primary">Daftar Konsentrasi Ini</a>
+      <a href="#kurikulum" class="btn btn-outline">Lihat Kurikulum</a>
+    </div>
+  </div>
+</div>
 
-_
+<?php get_footer(); ?>

@@ -1,5 +1,3 @@
-$ vim add.fil
-
 </div><!-- .container -->
 </main>
 
@@ -10,7 +8,7 @@ $ vim add.fil
       Fakultas Ekonomi dan Bisnis, Universitas Samudra
     </div>
     <div class="footer-right">
-      Jl.Meurandeh, Kota Langsa, Aceh<br>
+      Jl. Meurandeh, Kota Langsa, Aceh<br>
       © <?php echo date('Y'); ?> Universitas Samudra
     </div>
   </div>
@@ -18,4 +16,3 @@ $ vim add.fil
 </footer>
 </body>
 </html>
-e 
